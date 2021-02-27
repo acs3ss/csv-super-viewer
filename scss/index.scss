@@ -31,6 +31,11 @@ h1 {
     border-color: #1c7916;
 }
 
+.btn-danger {
+    background-color: rgb(255 0 0 / 25%);
+    margin-left: 1rem;
+}
+
 .btn-nochanges, .btn-nochanges:hover {
     color: white;
     background-color: #343a40;
@@ -39,4 +44,15 @@ h1 {
 
 .letters {
     color: white;
+}
+
+#table-container div {
+    color: white;
+    border-top: 1px solid var(--gray);
+    // padding: $spacer * 0.25 $spacer;
+    padding: 0.75rem;
+
+    // &:empty {
+    //     border-top: none;
+    // }
 }

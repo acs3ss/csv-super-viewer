@@ -29,7 +29,6 @@ openFileButton.addEventListener('click', async () => {
   }
 
   data = result.data;
-  console.log(result);
   createTable(data);
 });
 
@@ -40,67 +39,103 @@ saveFileButton.addEventListener('click', async () => {
 });
 
 function createTable(data: string[][]) {
+  emptyTable();
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tableContainer = document.getElementById('table-container')!;
-  while (tableContainer.hasChildNodes()) {
-    tableContainer.lastChild?.remove();
+  const tableContainerContainer: HTMLElement = document.getElementById("table-container-container")!;
+  // Create `table-container` if it doesn't exist.
+  let tableContainer = document.getElementById('table-container');
+  if (!tableContainer) {
+    tableContainer = document.createElement('div');
+    tableContainer.setAttribute('id', 'table-container');
+    tableContainerContainer.appendChild(tableContainer);
   }
 
-  // Include header.
-  // const useHeaders = headerCheckBox.checked && data.length > 0;
-  // if (useHeaders) {
-  //   const theadElem = document.createElement('thead');
-  //   tableContainer.appendChild(theadElem);
-  //   const trElem = document.createElement('tr');
-  //   theadElem.appendChild(trElem);
-  //   for (let col = 0; col < data[0].length; col++) {
-  //     const thElem = document.createElement('th');
-  //     makeCellWithEditableContents(thElem, data[0][col], 0, col);
-  //     trElem.appendChild(thElem);
-  //   }
-  //   tableContainer.appendChild(trElem);
-  // }
+  let maxColumns = Math.max(...data.map(row => row.length));
 
-  // const tbodyElem = document.createElement('tbody');
-  // tableContainer.appendChild(tbodyElem);
-  // for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
-  //   const trElem = document.createElement('tr');
-  //   for (let col = 0; col < data[row].length; col++) {
-  //     const tdElem = document.createElement('td');
-  //     makeCellWithEditableContents(tdElem, data[row][col], row, col);
-  //     trElem.appendChild(tdElem);
-  //   }
-  //   tbodyElem.appendChild(trElem);
-  // }
-
-  const useHeaders = headerCheckBox.checked && data.length > 0;
-  if (useHeaders) {
-    for (let col = 0; col < data[0].length; col++) {
-      const divElem = document.createElement('div');
-      makeCellWithEditableContents(divElem, data[0][col], 0, col);
-      tableContainer.append(divElem);
-    }
-  }
-
-  let maxColumns = useHeaders ? data[0].length : 0;
-  for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
-    for (let col = 0; col < data[row].length; col++) {
-      const divElem = document.createElement('div');
-      makeCellWithEditableContents(divElem, data[row][col], row, col);
-      tableContainer.append(divElem);
-    }
-
-    maxColumns = Math.max(maxColumns, data[row].length + 1);
-
+  // Make row of +- column buttons.
+  for (let col = 0; col < maxColumns; col++) {
+    // Add col button
     const actionsElem = document.createElement('div');
-    const addButton = document.createElement('button');
-    addButton.textContent = '+';
-    addButton.classList.add('btn', 'btn-primary', 'btn-sm');
-    actionsElem.append(addButton);
+    const addColButton = document.createElement('button');
+    addColButton.dataset.col = col.toString();
+    addColButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // @ts-ignore
+      const colNum: number = Number(event.target.dataset.col);
+      insertColumn(data, colNum + 1);
+      saveBtnOn();
+    });
+    addColButton.textContent = '+';
+    addColButton.classList.add('btn', 'btn-secondary', 'btn-sm');
+    actionsElem.append(addColButton);
+
+    // Remove col button
+    const removeColButton = document.createElement('button');
+    removeColButton.dataset.col = col.toString();
+    removeColButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // @ts-ignore
+      const colNum: number = Number(event.target.dataset.col);
+      removeColumn(data, colNum);
+      saveBtnOn();
+    });
+    removeColButton.textContent = '-';
+    removeColButton.classList.add('btn', 'btn-danger', 'btn-sm');
+    actionsElem.append(removeColButton);
+
     tableContainer.append(actionsElem);
   }
 
-  document.documentElement.style.setProperty('--columns', maxColumns.toString());
+  // Append blank div in the top right corner.
+  tableContainer.append(document.createElement('div'));
+
+  // TODO: Make UI changes for headers.
+  // const useHeaders = headerCheckBox.checked && data.length > 0;
+
+  for (let row = 0; row < data.length; row++) {
+    for (let col = 0; col < maxColumns; col++) {
+      const divElem = document.createElement('div');
+      const contents = col < data[row].length ? data[row][col] : "";
+      makeCellWithEditableContents(divElem, contents, row, col);
+      tableContainer.append(divElem);
+    }
+
+    // Add row button
+    const actionsElem = document.createElement('div');
+    const addRowButton = document.createElement('button');
+    addRowButton.dataset.row = row.toString();
+    addRowButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // @ts-ignore
+      const rowNum: number = Number(event.target.dataset.row);
+      insertRow(data, rowNum + 1);
+      saveBtnOn();
+    });
+    addRowButton.textContent = '+';
+    addRowButton.classList.add('btn', 'btn-secondary', 'btn-sm');
+    actionsElem.append(addRowButton);
+    // Remove row button
+    const removeRowButton = document.createElement('button');
+    removeRowButton.dataset.row = row.toString();
+    removeRowButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // @ts-ignore
+      const rowNum: number = Number(event.target.dataset.row);
+      removeRow(data, rowNum);
+      saveBtnOn();
+    });
+    removeRowButton.textContent = '-';
+    removeRowButton.classList.add('btn', 'btn-danger', 'btn-sm');
+    actionsElem.append(removeRowButton);
+    // add actions
+    tableContainer.append(actionsElem);
+  }
+
+  document.documentElement.style.setProperty('--columns', (maxColumns + 1).toString());
 }
 
 function saveBtnOn() {
@@ -128,33 +163,69 @@ function makeCellWithEditableContents(cell: HTMLElement, content: string, row: n
   });
 }
 
-// function insertRow(data: string[][], newRow: number) {
-//   // Append empty row, then update rows from end -> inserted row.
-//   const empty_row = new Array(data[0].length);
-//   // TODO: Fill row with row/col info, listeners.
-//   // row: data[i].length + 1
-//   // col: loop through
-//   data.push(empty_row);
-//   for (let i = data.length - 1; i > row; i--) {
-//     for (let j = 0; j < data[i].length; j++) {
-//       // TODO: Make this update the appropriate info.
-//       data[i - 1][j] = data[i][j];
-//     }
-//   }
-// }
+function insertRow(data: string[][], newRow: number) {
+  // Append empty row, then update rows from end -> inserted row.
+  const emptyRow = new Array(data[0].length);
+  data.push(emptyRow);
+  for (let i = data.length - 1; i > newRow; i--) {
+    // Overwrite entire row, assuming this works.
+    data[i] = data[i - 1];
+  }
+  data[newRow] = emptyRow.map(e => "");
+  
+  // Redraw the table.
+  createTable(data);
+}
 
-// function insertColumn(data: string[][], newColumn: number) {
-//   for (let i = 0; i < data.length; i++) {
-//     // TODO: Fill cell with row/col info, listeners.
-//     // row: i
-//     // col: data[i].length + 1
-//     data[i].push("");
-//     for (let j = data[i].length - 1; j > newColumn; j--) {
-//       // TODO: Make this update the appropriate info.
-//       data[i][j - 1] = data[i][j];
-//     }
-//   }
-// }
+function insertColumn(data: string[][], newColumn: number) {
+  for (let i = 0; i < data.length; i++) {
+    // Append empty col, then update rows from end -> inserted col.
+    data[i].push("");
+    for (let j = data[i].length - 1; j > newColumn; j--) {
+      data[i][j] = data[i][j - 1];
+    }
+    data[i][newColumn] = "";
+  }
+
+  // Redraw the table.
+  createTable(data);
+}
+
+function removeRow(data: string[][], removeRow: number) {
+  // Overwrite rows from removed row -> end.
+  for (let i = removeRow + 1; i < data.length; i++) {
+    // Overwrite entire row, assuming this works.
+    data[i - 1] = data[i];
+  }
+  data.pop();
+
+  // Redraw the table.
+  createTable(data);
+}
+
+function removeColumn(data: string[][], removeColumn: number) {
+  for (let i = 0; i < data.length; i++) {
+    // Overwrite cols from removed col -> end.
+    for (let j = removeColumn + 1; j < data[i].length; j++) {
+      data[i][j - 1] = data[i][j];
+    }
+    if (data[i].length > removeColumn) {
+      data[i].pop();
+    }
+  }
+
+  // Redraw the table.
+  createTable(data);
+}
+
+function emptyTable(){
+  const tableContainer: HTMLElement = document.getElementById("table-container")!;
+  tableContainer.remove();
+  const tableContainerContainer: HTMLElement = document.getElementById("table-container-container")!;
+  const newTableContainer: HTMLElement = document.createElement('div');
+  newTableContainer.setAttribute('id', 'table-container');
+  tableContainerContainer.appendChild(newTableContainer);
+}
 
 async function writeFile(fileHandle: FileSystemFileHandle, contents: FileSystemWriteChunkType) {
   const writable = await fileHandle.createWritable();
