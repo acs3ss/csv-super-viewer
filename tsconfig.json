@@ -19,7 +19,7 @@
         "noImplicitReturns": true,
 
         /* Report errors on unused locals. */
-        "noUnusedLocals": true,
+        // "noUnusedLocals": true,
 
         /* Report errors on unused parameters. */
         //"noUnusedParameters": true,

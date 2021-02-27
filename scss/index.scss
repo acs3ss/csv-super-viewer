@@ -1,5 +1,14 @@
 @import "bootstrap/scss/bootstrap";
 
+:root {
+    --columns: 0;
+}
+
+#table-container {
+    display: grid;
+    grid-template-columns: repeat(var(--columns), 1fr);
+}
+
 .jumbotron {
     background-color: #212529;
 }

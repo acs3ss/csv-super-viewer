@@ -1,8 +1,8 @@
 import * as Papa from 'papaparse';
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-const openFileButton = document.getElementById('open-file-button')!;
-const saveFileButton = document.getElementById('save-file-button')!;
+const openFileButton = document.getElementById('open-file-button')! as HTMLButtonElement;
+const saveFileButton = document.getElementById('save-file-button')! as HTMLButtonElement;
 const headerCheckBox = document.getElementById('header-check-box')! as HTMLInputElement;
 /* eslint-enable */
 
@@ -36,7 +36,6 @@ openFileButton.addEventListener('click', async () => {
 saveFileButton.addEventListener('click', async () => {
   const contents = Papa.unparse(data);
   writeFile(fileHandle, contents);
-  console.log("File saved");
   saveBtnOff();
 });
 
@@ -48,31 +47,60 @@ function createTable(data: string[][]) {
   }
 
   // Include header.
+  // const useHeaders = headerCheckBox.checked && data.length > 0;
+  // if (useHeaders) {
+  //   const theadElem = document.createElement('thead');
+  //   tableContainer.appendChild(theadElem);
+  //   const trElem = document.createElement('tr');
+  //   theadElem.appendChild(trElem);
+  //   for (let col = 0; col < data[0].length; col++) {
+  //     const thElem = document.createElement('th');
+  //     makeCellWithEditableContents(thElem, data[0][col], 0, col);
+  //     trElem.appendChild(thElem);
+  //   }
+  //   tableContainer.appendChild(trElem);
+  // }
+
+  // const tbodyElem = document.createElement('tbody');
+  // tableContainer.appendChild(tbodyElem);
+  // for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
+  //   const trElem = document.createElement('tr');
+  //   for (let col = 0; col < data[row].length; col++) {
+  //     const tdElem = document.createElement('td');
+  //     makeCellWithEditableContents(tdElem, data[row][col], row, col);
+  //     trElem.appendChild(tdElem);
+  //   }
+  //   tbodyElem.appendChild(trElem);
+  // }
+
   const useHeaders = headerCheckBox.checked && data.length > 0;
   if (useHeaders) {
-    const theadElem = document.createElement('thead');
-    tableContainer.appendChild(theadElem);
-    const trElem = document.createElement('tr');
-    theadElem.appendChild(trElem);
     for (let col = 0; col < data[0].length; col++) {
-      const thElem = document.createElement('th');
-      makeCellWithEditableContents(thElem, data[0][col], 0, col);
-      trElem.appendChild(thElem);
+      const divElem = document.createElement('div');
+      makeCellWithEditableContents(divElem, data[0][col], 0, col);
+      tableContainer.append(divElem);
     }
-    tableContainer.appendChild(trElem);
   }
 
-  const tbodyElem = document.createElement('tbody');
-  tableContainer.appendChild(tbodyElem);
+  let maxColumns = useHeaders ? data[0].length : 0;
   for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
-    const trElem = document.createElement('tr');
     for (let col = 0; col < data[row].length; col++) {
-      const tdElem = document.createElement('td');
-      makeCellWithEditableContents(tdElem, data[row][col], row, col);
-      trElem.appendChild(tdElem);
+      const divElem = document.createElement('div');
+      makeCellWithEditableContents(divElem, data[row][col], row, col);
+      tableContainer.append(divElem);
     }
-    tbodyElem.appendChild(trElem);
+
+    maxColumns = Math.max(maxColumns, data[row].length + 1);
+
+    const actionsElem = document.createElement('div');
+    const addButton = document.createElement('button');
+    addButton.textContent = '+';
+    addButton.classList.add('btn', 'btn-primary', 'btn-sm');
+    actionsElem.append(addButton);
+    tableContainer.append(actionsElem);
   }
+
+  document.documentElement.style.setProperty('--columns', maxColumns.toString());
 }
 
 function saveBtnOn() {
@@ -85,7 +113,7 @@ function saveBtnOff() {
   saveFileButton.classList.remove('btn-secondary');
 }
 
-function makeCellWithEditableContents(cell: HTMLTableDataCellElement, content: string, row: number, col: number) {
+function makeCellWithEditableContents(cell: HTMLElement, content: string, row: number, col: number) {
   cell.setAttribute('contenteditable', 'true');
   cell.dataset.row = row.toString();
   cell.dataset.col = col.toString();
@@ -99,6 +127,34 @@ function makeCellWithEditableContents(cell: HTMLTableDataCellElement, content: s
     data[Number(event.target.dataset.row)][Number(event.target.dataset.col)] = event.target.innerText;
   });
 }
+
+// function insertRow(data: string[][], newRow: number) {
+//   // Append empty row, then update rows from end -> inserted row.
+//   const empty_row = new Array(data[0].length);
+//   // TODO: Fill row with row/col info, listeners.
+//   // row: data[i].length + 1
+//   // col: loop through
+//   data.push(empty_row);
+//   for (let i = data.length - 1; i > row; i--) {
+//     for (let j = 0; j < data[i].length; j++) {
+//       // TODO: Make this update the appropriate info.
+//       data[i - 1][j] = data[i][j];
+//     }
+//   }
+// }
+
+// function insertColumn(data: string[][], newColumn: number) {
+//   for (let i = 0; i < data.length; i++) {
+//     // TODO: Fill cell with row/col info, listeners.
+//     // row: i
+//     // col: data[i].length + 1
+//     data[i].push("");
+//     for (let j = data[i].length - 1; j > newColumn; j--) {
+//       // TODO: Make this update the appropriate info.
+//       data[i][j - 1] = data[i][j];
+//     }
+//   }
+// }
 
 async function writeFile(fileHandle: FileSystemFileHandle, contents: FileSystemWriteChunkType) {
   const writable = await fileHandle.createWritable();
