@@ -15,7 +15,7 @@ module.exports = {
     compress: true,
     https: true,
     port: 3001,
-    hot: true,
+    // hot: true,
     // publicPath: "https://localhost:3001/",
   },
   devtool: 'source-map',

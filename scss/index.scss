@@ -4,11 +4,6 @@
     --columns: 0;
 }
 
-#table-container {
-    display: grid;
-    grid-template-columns: repeat(var(--columns), 1fr);
-}
-
 .jumbotron {
     background-color: #212529;
 }
@@ -21,19 +16,12 @@ h1 {
     background-color: rgb(0 123 255 / 25%);
 }
 
-.btn-secondary {
-    background-color:  rgb(37 182 37 / 25%);
-    border-color: #1c7916;
-}
-
-.btn-secondary:hover {
-    background-color: #1c7916;
-    border-color: #1c7916;
+.btn-success {
+    background-color: rgb(37 182 37 / 25%);
 }
 
 .btn-danger {
     background-color: rgb(255 0 0 / 25%);
-    margin-left: 1rem;
 }
 
 .btn-nochanges, .btn-nochanges:hover {
@@ -46,17 +34,39 @@ h1 {
     color: white;
 }
 
-#table-container div {
-    color: white;
-    border-top: 1px solid var(--gray);
-    // padding: $spacer * 0.25 $spacer;
-    padding: 0.75rem;
+#table-container {
+    display: grid;
+    // minmax: Force the columns to take up _at most_ 20% of the space in the available container
+    grid-template-columns: repeat(var(--columns), minmax(20%, 1fr));
 
-    // &:empty {
-    //     border-top: none;
-    // }
+    & > div {
+        display: contents;
+        color: white;
 
-    &.header {
-        font-weight: bold;
+        &.header {
+            font-weight: bold;
+        }
+
+        // This is the actions row
+        &:first-child {
+            & div {
+                border-top: none;
+            }
+        }
+
+        & > div {
+            border-top: 1px solid var(--gray);
+            border-right: 1px solid var(--gray);
+            padding: 0.75rem;
+
+            // This is the actions column
+            &:last-child {
+                border-right: none;
+            }
+        }
+    }
+
+    .actions {
+        text-align: center;
     }
 }
