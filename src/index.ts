@@ -38,6 +38,17 @@ saveFileButton.addEventListener('click', async () => {
   saveBtnOff();
 });
 
+headerCheckBox.addEventListener('change', () => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const {children} = document.getElementById("table-container")!;
+
+  const columns = Number(document.documentElement.style.getPropertyValue('--columns'));
+  for (let i = 0; i < columns; i++) {
+    // columns + i to get past the initial row of add/remove buttons
+    children[columns + i].classList.toggle('header');
+  }
+});
+
 function createTable(data: string[][]) {
   const tableContainer: HTMLElement = resetTable();
 
@@ -80,49 +91,7 @@ function createTable(data: string[][]) {
   // Append blank div in the top right corner.
   tableContainer.append(document.createElement('div'));
 
-  // TODO: De-duplicate this logic.
-  const useHeaders = headerCheckBox.checked && data.length > 0;
-  if (useHeaders) {
-    for (let col = 0; col < maxColumns; col++) {
-      const divElem = document.createElement('div');
-      divElem.classList.add('header');
-      const contents = col < data[0].length ? data[0][col] : "";
-      makeCellWithEditableContents(divElem, contents, 0, col);
-      tableContainer.append(divElem);
-    }
-
-    // Add row button
-    const actionsElem = document.createElement('div');
-    const addRowButton = document.createElement('button');
-    addRowButton.dataset.row = '0';
-    addRowButton.addEventListener('click', (event) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const rowNum = Number(event.target.dataset.row);
-      insertRow(data, rowNum + 1);
-      saveBtnOn();
-    });
-    addRowButton.textContent = '+';
-    addRowButton.classList.add('btn', 'btn-secondary', 'btn-sm');
-    actionsElem.append(addRowButton);
-    // Remove row button
-    const removeRowButton = document.createElement('button');
-    removeRowButton.dataset.row = '0';
-    removeRowButton.addEventListener('click', (event) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const rowNum = Number(event.target.dataset.row);
-      removeRow(data, rowNum);
-      saveBtnOn();
-    });
-    removeRowButton.textContent = '-';
-    removeRowButton.classList.add('btn', 'btn-danger', 'btn-sm');
-    actionsElem.append(removeRowButton);
-    // add actions
-    tableContainer.append(actionsElem);
-  }
-
-  for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
+  for (let row = 0; row < data.length; row++) {
     for (let col = 0; col < maxColumns; col++) {
       const divElem = document.createElement('div');
       const contents = col < data[row].length ? data[row][col] : "";
