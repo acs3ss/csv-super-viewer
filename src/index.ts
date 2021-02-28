@@ -1,13 +1,14 @@
 import * as Papa from 'papaparse';
+import {CSVTable} from './CSVTable';
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-const openFileButton = document.getElementById('open-file-button')!;
-const saveFileButton = document.getElementById('save-file-button')!;
+const openFileButton = document.getElementById('open-file-button')! as HTMLButtonElement;
+const saveFileButton = document.getElementById('save-file-button')! as HTMLButtonElement;
 const headerCheckBox = document.getElementById('header-check-box')! as HTMLInputElement;
 /* eslint-enable */
 
+let csvTable: CSVTable;
 let fileHandle: FileSystemFileHandle;
-let data: string[][];
 
 openFileButton.addEventListener('click', async () => {
   const options: OpenFilePickerOptions = {
@@ -20,6 +21,9 @@ openFileButton.addEventListener('click', async () => {
 
   [fileHandle] = await window.showOpenFilePicker(options);
 
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  csvTable = new CSVTable(document.getElementById("table-container")!, onTableEdited);
+
   const file = await fileHandle.getFile();
   const contents = await file.text();
 
@@ -28,76 +32,35 @@ openFileButton.addEventListener('click', async () => {
     console.log("Error parsing CSV:", result.errors.map(e => e.message));
   }
 
-  data = result.data;
-  console.log(result);
-  createTable(data);
+  csvTable.setContents(result.data);
+  csvTable.createTable();
+  if (headerCheckBox.checked) {
+    toggleHeaders();
+  }
 });
 
 saveFileButton.addEventListener('click', async () => {
-  const contents = Papa.unparse(data);
+  const contents = Papa.unparse(csvTable.getContents());
   writeFile(fileHandle, contents);
-  console.log("File saved");
-  saveBtnOff();
+  onTableEdited(false);
 });
 
-function createTable(data: string[][]) {
+headerCheckBox.addEventListener('change', () => toggleHeaders());
+
+function toggleHeaders() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tableContainer = document.getElementById('table-container')!;
-  while (tableContainer.hasChildNodes()) {
-    tableContainer.lastChild?.remove();
-  }
-
-  // Include header.
-  const useHeaders = headerCheckBox.checked && data.length > 0;
-  if (useHeaders) {
-    const theadElem = document.createElement('thead');
-    tableContainer.appendChild(theadElem);
-    const trElem = document.createElement('tr');
-    theadElem.appendChild(trElem);
-    for (let col = 0; col < data[0].length; col++) {
-      const thElem = document.createElement('th');
-      makeCellWithEditableContents(thElem, data[0][col], 0, col);
-      trElem.appendChild(thElem);
-    }
-    tableContainer.appendChild(trElem);
-  }
-
-  const tbodyElem = document.createElement('tbody');
-  tableContainer.appendChild(tbodyElem);
-  for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
-    const trElem = document.createElement('tr');
-    for (let col = 0; col < data[row].length; col++) {
-      const tdElem = document.createElement('td');
-      makeCellWithEditableContents(tdElem, data[row][col], row, col);
-      trElem.appendChild(tdElem);
-    }
-    tbodyElem.appendChild(trElem);
-  }
+  const {children} = document.getElementById("table-container")!;
+  children[1].classList.toggle('header');
 }
 
-function saveBtnOn() {
-  saveFileButton.classList.add('btn-secondary');
-  saveFileButton.classList.remove('btn-nochanges');
-}
-
-function saveBtnOff() {
-  saveFileButton.classList.add('btn-nochanges');
-  saveFileButton.classList.remove('btn-secondary');
-}
-
-function makeCellWithEditableContents(cell: HTMLTableDataCellElement, content: string, row: number, col: number) {
-  cell.setAttribute('contenteditable', 'true');
-  cell.dataset.row = row.toString();
-  cell.dataset.col = col.toString();
-  cell.textContent = content;
-
-  cell.addEventListener('input', event => {
-    saveBtnOn();
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    data[Number(event.target.dataset.row)][Number(event.target.dataset.col)] = event.target.innerText;
-  });
+function onTableEdited(hasEdits: boolean) {
+  if (hasEdits) {
+    saveFileButton.classList.add('btn-success');
+    saveFileButton.classList.remove('btn-nochanges');
+  } else {
+    saveFileButton.classList.add('btn-nochanges');
+    saveFileButton.classList.remove('btn-success');
+  }
 }
 
 async function writeFile(fileHandle: FileSystemFileHandle, contents: FileSystemWriteChunkType) {
