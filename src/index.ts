@@ -39,18 +39,9 @@ saveFileButton.addEventListener('click', async () => {
 });
 
 function createTable(data: string[][]) {
-  emptyTable();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const tableContainerContainer: HTMLElement = document.getElementById("table-container-container")!;
-  // Create `table-container` if it doesn't exist.
-  let tableContainer = document.getElementById('table-container');
-  if (!tableContainer) {
-    tableContainer = document.createElement('div');
-    tableContainer.setAttribute('id', 'table-container');
-    tableContainerContainer.appendChild(tableContainer);
-  }
+  const tableContainer: HTMLElement = resetTable();
 
-  let maxColumns = Math.max(...data.map(row => row.length));
+  const maxColumns = Math.max(...data.map(row => row.length));
 
   // Make row of +- column buttons.
   for (let col = 0; col < maxColumns; col++) {
@@ -61,8 +52,7 @@ function createTable(data: string[][]) {
     addColButton.addEventListener('click', (event) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // @ts-ignore
-      const colNum: number = Number(event.target.dataset.col);
+      const colNum = Number(event.target.dataset.col);
       insertColumn(data, colNum + 1);
       saveBtnOn();
     });
@@ -76,8 +66,7 @@ function createTable(data: string[][]) {
     removeColButton.addEventListener('click', (event) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // @ts-ignore
-      const colNum: number = Number(event.target.dataset.col);
+      const colNum = Number(event.target.dataset.col);
       removeColumn(data, colNum);
       saveBtnOn();
     });
@@ -91,10 +80,49 @@ function createTable(data: string[][]) {
   // Append blank div in the top right corner.
   tableContainer.append(document.createElement('div'));
 
-  // TODO: Make UI changes for headers.
-  // const useHeaders = headerCheckBox.checked && data.length > 0;
+  // TODO: De-duplicate this logic.
+  const useHeaders = headerCheckBox.checked && data.length > 0;
+  if (useHeaders) {
+    for (let col = 0; col < maxColumns; col++) {
+      const divElem = document.createElement('div');
+      divElem.classList.add('header');
+      const contents = col < data[0].length ? data[0][col] : "";
+      makeCellWithEditableContents(divElem, contents, 0, col);
+      tableContainer.append(divElem);
+    }
 
-  for (let row = 0; row < data.length; row++) {
+    // Add row button
+    const actionsElem = document.createElement('div');
+    const addRowButton = document.createElement('button');
+    addRowButton.dataset.row = '0';
+    addRowButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const rowNum = Number(event.target.dataset.row);
+      insertRow(data, rowNum + 1);
+      saveBtnOn();
+    });
+    addRowButton.textContent = '+';
+    addRowButton.classList.add('btn', 'btn-secondary', 'btn-sm');
+    actionsElem.append(addRowButton);
+    // Remove row button
+    const removeRowButton = document.createElement('button');
+    removeRowButton.dataset.row = '0';
+    removeRowButton.addEventListener('click', (event) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const rowNum = Number(event.target.dataset.row);
+      removeRow(data, rowNum);
+      saveBtnOn();
+    });
+    removeRowButton.textContent = '-';
+    removeRowButton.classList.add('btn', 'btn-danger', 'btn-sm');
+    actionsElem.append(removeRowButton);
+    // add actions
+    tableContainer.append(actionsElem);
+  }
+
+  for (let row = useHeaders ? 1 : 0; row < data.length; row++) {
     for (let col = 0; col < maxColumns; col++) {
       const divElem = document.createElement('div');
       const contents = col < data[row].length ? data[row][col] : "";
@@ -109,8 +137,7 @@ function createTable(data: string[][]) {
     addRowButton.addEventListener('click', (event) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // @ts-ignore
-      const rowNum: number = Number(event.target.dataset.row);
+      const rowNum = Number(event.target.dataset.row);
       insertRow(data, rowNum + 1);
       saveBtnOn();
     });
@@ -123,8 +150,7 @@ function createTable(data: string[][]) {
     removeRowButton.addEventListener('click', (event) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      // @ts-ignore
-      const rowNum: number = Number(event.target.dataset.row);
+      const rowNum = Number(event.target.dataset.row);
       removeRow(data, rowNum);
       saveBtnOn();
     });
@@ -171,8 +197,8 @@ function insertRow(data: string[][], newRow: number) {
     // Overwrite entire row, assuming this works.
     data[i] = data[i - 1];
   }
-  data[newRow] = emptyRow.map(e => "");
-  
+  data[newRow] = emptyRow.map(() => "");
+
   // Redraw the table.
   createTable(data);
 }
@@ -218,13 +244,16 @@ function removeColumn(data: string[][], removeColumn: number) {
   createTable(data);
 }
 
-function emptyTable(){
-  const tableContainer: HTMLElement = document.getElementById("table-container")!;
+function resetTable(): HTMLElement {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tableContainer = document.getElementById("table-container")!;
   tableContainer.remove();
-  const tableContainerContainer: HTMLElement = document.getElementById("table-container-container")!;
-  const newTableContainer: HTMLElement = document.createElement('div');
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tableContainerContainer = document.getElementById("table-container-container")!;
+  const newTableContainer = document.createElement('div');
   newTableContainer.setAttribute('id', 'table-container');
   tableContainerContainer.appendChild(newTableContainer);
+  return newTableContainer;
 }
 
 async function writeFile(fileHandle: FileSystemFileHandle, contents: FileSystemWriteChunkType) {
