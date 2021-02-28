@@ -11,7 +11,10 @@
     <section class="jumbotron text-center">
         <div class="container">
           <h1 class="jumbotron-heading"><span class="letters">C</span>SV <span class="letters">S</span>uper <span class="letters">V</span>iewer</h1>
-          <p class="lead text-muted">Want to edit a CSV without installing a native application like Excel or VS Code or sending your files over the internet? Click below to select a file.</p>
+          <p class="lead text-muted">
+            Want to edit a CSV without installing a native application like Excel or VS Code or sending your files over the internet?
+            <br>Click below to select a file.
+          </p>
           <p>
             <button class="btn btn-primary" type="button" id="open-file-button">Open CSV File</button>
             <button class="btn btn-nochanges" type="button" id="save-file-button">Save File</button>
@@ -22,8 +25,8 @@
           </div>
         </div>
     </section>
-    <div class="container">
-        <table class="table table-dark" id="table-container"></table>
+    <div id="table-container-container" class="container overflow-auto">
+        <div id="table-container"></div>
     </div>
 
     <!-- Must be the last thing in body -->
